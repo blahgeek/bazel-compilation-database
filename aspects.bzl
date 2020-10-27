@@ -114,7 +114,7 @@ def _cc_compiler_info(ctx, target, srcs, feature_configuration, cc_toolchain):
     force_language_mode_option = ""
 
     # This is useful for compiling .h headers as C++ code.
-    if _is_cpp_target(srcs):
+    if ctx.attr.always_force_cpp_mode == "True" or _is_cpp_target(srcs):
         compile_variables = cc_common.create_compile_variables(
             feature_configuration = feature_configuration,
             cc_toolchain = cc_toolchain,
@@ -309,6 +309,14 @@ compilation_database_aspect = aspect(
     attrs = {
         "_cc_toolchain": attr.label(
             default = Label("@bazel_tools//tools/cpp:current_cc_toolchain"),
+        ),
+        "always_force_cpp_mode": attr.string(
+            values = ["True", "False"],
+            default = "True",
+            doc = ("Always compile everything as C++ code (instead of C code). This is in " +
+                   "particular for header-only cc_library targets, which may have only .h files " +
+                   "in their hdrs attribute, leaving the ambiguity whether these .h files " +
+                   "should be compiled as C++ code or C code."),
         ),
         "_xcode_config": attr.label(default = Label("@bazel_tools//tools/osx:current_xcode_config")),
     },
